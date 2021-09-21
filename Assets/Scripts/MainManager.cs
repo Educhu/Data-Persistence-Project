@@ -14,16 +14,18 @@ public class MainManager : MonoBehaviour
     public Text ScoreText;
     public GameObject GameOverText;
     
-    private bool m_Started = false;
+    public bool m_Started = false;
     public int m_Points;
     
-    private bool m_GameOver = false;
+    public bool m_GameOver = false;
 
     public static MainManager Instance;
     //public Text atualizedPoints;
     public int highScore;
     public string namePlayer;
     public Text bestScore;
+
+    public bool hasConstructed;
 
     private void Awake()
     {
@@ -34,14 +36,18 @@ public class MainManager : MonoBehaviour
         }
 
         Instance = this;
+
         DontDestroyOnLoad(gameObject);
+
         LoadScore();
     }
 
     // Start is called before the first frame update
     void Start()
     {
+        hasConstructed = false;
         ConstroiBricks();
+        hasConstructed = true;
        
         highScore = GameObject.Find("Armazenamento De Dados").GetComponent<NameScore>().maxPoints;
         namePlayer = GameObject.Find("Armazenamento De Dados").GetComponent<NameScore>().playerName;
@@ -49,9 +55,20 @@ public class MainManager : MonoBehaviour
 
     private void Update()
     {
+
+        if (GameOverText == null)
+            GameOverText = GameObject.Find( "Canvas" ).gameObject.transform.Find( "GameoverText").gameObject;
+
         if (!m_Started)
         {
             AtualizaScore();
+
+            if (!hasConstructed)
+            {
+                ConstroiBricks();
+                hasConstructed = true;
+            }
+                
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -65,30 +82,27 @@ public class MainManager : MonoBehaviour
                     Ball = GameObject.Find("Ball").GetComponent<Rigidbody>();
                 }
 
-               //
-
                 Ball.transform.SetParent(null);
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
-
-                ConstroiBricks();
             }
+            m_GameOver = false;
         }
         else if (m_GameOver)
         {
-
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 
                 AtualizaScore();
 
-               // m_GameOver = false;
+                // m_GameOver = false;
                 m_Started = false;
+                hasConstructed = false;
             }
         }
 
-        Debug.LogWarning(m_GameOver);
     }
+
 
    
 
@@ -147,8 +161,6 @@ public class MainManager : MonoBehaviour
     
     void LoadScore()
     {
-        
-
         bestScore.text = "Best Score : " + namePlayer + " : " + highScore;
     }
 
