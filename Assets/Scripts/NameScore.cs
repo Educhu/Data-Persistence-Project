@@ -6,68 +6,54 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
-
+[System.Serializable]
 public class NameScore : MonoBehaviour
 {
     public string playerName;
     public InputField inputFieldPlayerName;
-    public Text bestScore;
+    public Text melhorPontuacao;
 
     public int pontos;
-    public int maxPoints;
+    public string playerNameHigh;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        maxPoints = 0;
-
-        //pontos = GameObject.Find("Main Manager").GetComponent<MainManager>().m_Points;
-
         inputFieldPlayerName = GameObject.FindGameObjectWithTag("NamePlayer").GetComponent<InputField>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        //bestScore.text = "Best Score: " + playerName + pontos;
+        
+    }
+
+    private void Awake()
+    {
+        LoadHighScore();
+        DontDestroyOnLoad( gameObject );
     }
 
     public void OnChangeInputField()
     {
         playerName = inputFieldPlayerName.text;
-
-        Debug.Log(playerName);
-
-        DontDestroyOnLoad(gameObject);
     }
 
-    [System.Serializable]
-    class SaveData
+
+    
+    public void LoadHighScore()
     {
-        public string playerName;
-    }
-
-    public void SaveName()
-    {
-        SaveData data = new SaveData();
-        data.playerName = playerName;
-
-        string json = JsonUtility.ToJson(data);
-
-        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
-    }
-
-    public void LoadColor()
-    {
-        string path = Application.persistentDataPath + "/savefile.json";
+        string path = Application.persistentDataPath + "/armazena.json";
         if (File.Exists(path))
         {
             string json = File.ReadAllText(path);
-            SaveData data = JsonUtility.FromJson<SaveData>(json);
+            MainManager.SaveData data = JsonUtility.FromJson<MainManager.SaveData>(json);
 
-            playerName = data.playerName;
+            playerNameHigh = data.playerNameToSave;
+            pontos = data.playerPointsToSave;
+
+            melhorPontuacao.text = "Best Score : " + playerNameHigh + " : " + pontos.ToString();
         }
     }
-
-    //.toString
 }

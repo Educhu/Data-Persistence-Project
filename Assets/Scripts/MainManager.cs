@@ -25,7 +25,12 @@ public class MainManager : MonoBehaviour
     public string namePlayer;
     public Text bestScore;
 
+    public string highScoreName;
+
     public bool hasConstructed;
+
+    //
+    public GameObject nameScoreObject;
 
     private void Awake()
     {
@@ -45,17 +50,21 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        hasConstructed = false;
+        hasConstructed = false;     
         ConstroiBricks();
         hasConstructed = true;
-       
-        highScore = GameObject.Find("Armazenamento De Dados").GetComponent<NameScore>().maxPoints;
+    
         namePlayer = GameObject.Find("Armazenamento De Dados").GetComponent<NameScore>().playerName;
+
+        MantemHighScore();
+
+        //if(GameObject.Find( "Armazenamento De Dados" ).GetComponent<NameScore>().)
+
+        //nameScoreObject = GameObject.FindGameObjectWithTag("ArmazenamentoDeDados");]]
     }
 
     private void Update()
     {
-
         if (GameOverText == null)
             GameOverText = GameObject.Find( "Canvas" ).gameObject.transform.Find( "GameoverText").gameObject;
 
@@ -94,13 +103,13 @@ public class MainManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 
                 AtualizaScore();
+                MantemHighScore();
 
                 // m_GameOver = false;
                 m_Started = false;
                 hasConstructed = false;
             }
         }
-
     }
 
 
@@ -119,6 +128,8 @@ public class MainManager : MonoBehaviour
     public void GameOver()
     {
         AtualizaScore();
+        MantemHighScore();
+        
 
         m_GameOver = true;
         GameOverText.SetActive(true);
@@ -134,9 +145,11 @@ public class MainManager : MonoBehaviour
         if (m_Points > highScore)
         {
             highScore = m_Points;
+            highScoreName = namePlayer;
+            SaveHighScore();
         }
 
-        bestScore.text = "Best Score : " + namePlayer + " : " + highScore;
+        MantemHighScore();
 
         m_Points = 0;
     }
@@ -161,7 +174,40 @@ public class MainManager : MonoBehaviour
     
     void LoadScore()
     {
-        bestScore.text = "Best Score : " + namePlayer + " : " + highScore;
+       // bestScore.text = "Best Score : " + namePlayer + " : " + highScore;
     }
 
+
+    [System.Serializable]
+    public class SaveData
+    {
+        public string playerNameToSave;
+        public int playerPointsToSave;
+    }
+
+    public void SaveHighScore()
+    {
+        SaveData data = new SaveData();
+        data.playerNameToSave = namePlayer;
+        data.playerPointsToSave = m_Points;
+
+        string json = JsonUtility.ToJson(data);
+
+        File.WriteAllText(Application.persistentDataPath + "/armazena.json", json);
+    }
+
+    public void MantemHighScore()
+    {
+        string path = Application.persistentDataPath + "/armazena.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+            highScoreName = data.playerNameToSave;
+            highScore = data.playerPointsToSave;
+
+            bestScore.text = "Best Score : " + highScoreName + " : " + highScore.ToString();
+        }
+    }
 }
